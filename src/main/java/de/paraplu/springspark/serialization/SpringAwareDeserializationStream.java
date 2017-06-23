@@ -1,14 +1,16 @@
 package de.paraplu.springspark.serialization;
 
 import org.apache.spark.serializer.DeserializationStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import de.paraplu.springspark.util.SpringBuilder;
 import scala.collection.Iterator;
 import scala.collection.mutable.WrappedArray;
 import scala.reflect.ClassTag;
-import de.paraplu.springspark.util.SpringBuilder;
 
 public class SpringAwareDeserializationStream extends DeserializationStream {
-
+	private static final Logger LOG = LoggerFactory.getLogger(SpringAwareDeserializationStream.class);
 	private final DeserializationStream deserializationStream;
 
 	public SpringAwareDeserializationStream(DeserializationStream deserializationStream) {
@@ -29,6 +31,7 @@ public class SpringAwareDeserializationStream extends DeserializationStream {
 			final Iterator<Object> iterator = wrappedArray.iterator();
 			while (iterator.hasNext()) {
 				final Object object = iterator.next();
+				LOG.debug("deserialized wrapped object {}", object);
 				SpringBuilder.autowire(object);
 			}
 

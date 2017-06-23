@@ -8,20 +8,24 @@ import org.apache.spark.serializer.DeserializationStream;
 import org.apache.spark.serializer.KryoSerializer;
 import org.apache.spark.serializer.KryoSerializerInstance;
 import org.apache.spark.serializer.SerializationStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import scala.reflect.ClassTag;
 import de.paraplu.springspark.util.SpringBuilder;
+import scala.reflect.ClassTag;
 
 public class SpringAwareSerializerInstance extends KryoSerializerInstance {
+	private static final Logger LOG = LoggerFactory.getLogger(SpringAwareSerializerInstance.class);
 
-	public SpringAwareSerializerInstance(KryoSerializer ks) {
-		super(ks);
+	public SpringAwareSerializerInstance(KryoSerializer ks, boolean useUnsafe) {
+		super(ks, useUnsafe);
 	}
 
 	@Override
-	public <T> T deserialize(ByteBuffer bytes, ClassLoader loader, ClassTag<T> evidence$5) {
-		final T deserialized = super.deserialize(bytes, loader, evidence$5);
+	public <T> T deserialize(ByteBuffer bytes, ClassLoader loader, ClassTag<T> classTag) {
+		final T deserialized = super.deserialize(bytes, loader, classTag);
 		// autowire dependencies
+		LOG.debug("deserialized object {} class tag {}", deserialized, classTag);
 		SpringBuilder.autowire(deserialized);
 		return deserialized;
 	}
@@ -30,6 +34,7 @@ public class SpringAwareSerializerInstance extends KryoSerializerInstance {
 	public <T> T deserialize(ByteBuffer bytes, ClassTag<T> classTag) {
 		final T deserialized = super.deserialize(bytes, classTag);
 		// autowire dependencies
+		LOG.debug("deserialized object {} class tag {}", deserialized, classTag);
 		SpringBuilder.autowire(deserialized);
 		return deserialized;
 	}
@@ -40,8 +45,8 @@ public class SpringAwareSerializerInstance extends KryoSerializerInstance {
 	}
 
 	@Override
-	public <T> ByteBuffer serialize(T t, ClassTag<T> evidence$3) {
-		return super.serialize(t, evidence$3);
+	public <T> ByteBuffer serialize(T t, ClassTag<T> classTag) {
+		return super.serialize(t, classTag);
 	}
 
 	@Override
